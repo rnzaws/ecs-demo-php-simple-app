@@ -87,7 +87,7 @@ Resources:
         - ContainerName: "simple-app"
           ContainerPort: 80
           TargetGroupArn: !Ref TargetGroup
-    DepensOn:
+    DependsOn:
       - TargetGroup
 
   ListenerRule:
