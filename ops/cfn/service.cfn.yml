@@ -3,8 +3,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 # Any code, applications, scripts, templates, proofs of concept,
 # documentation and other items are provided for illustration purposes only.
-#
-# Copyright 2017 Amazon Web Services
+# # Copyright 2017 Amazon Web Services
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,23 +21,37 @@ Parameters:
 
   Tag:
     Type: String
-    Default: "latest"
+
+  TaskName:
+    Type: String
 
   DesiredCount:
     Type: Number
     Default: 0
 
+  LoadBalancerListenerArn:
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    Description: "ALB Listener ARN"
+
   EcsClusterName:
     Type: String
     MinLength: 1
-    MaxLength: 50
+    MaxLength: 255
     Description: "ECS cluster name"
 
   CiRepositoryName:
     Type: String
     MinLength: 1
-    MaxLength: 50
+    MaxLength: 255
     Description: "CI/CD repository name"
+
+  VpcId:
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    Description: "VPC stack name"
 
   TargetGroupArn:
     Type: String
@@ -75,6 +88,40 @@ Resources:
           ContainerPort: 80
           TargetGroupArn: !Ref TargetGroupArn
 
+
+  ListenerRule:
+    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    Properties:
+      ListenerArn: !Ref LoadBalancerListenerArn
+      Priority: 2
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /php
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+    DependsOn:
+      - TargetGroup
+
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      Name: !Sub "${TaskName}-target-group"
+      VpcId: !Ref VpcId
+      Port: 8405
+      Protocol: HTTP
+      Matcher:
+        HttpCode: 200-299
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 30
+
   TaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
@@ -109,4 +156,17 @@ Resources:
             - /bin/sh -c "while true; do /bin/date > /var/www/my-vol/date; sleep 1; done"
       Volumes:
         - Name: my-vol
+
+Outputs:
+
+  ServiceArnArn:
+    Value: !Ref Service
+    Export:
+      Name: !Sub "${AWS::StackName}-not-found-service-arn"
+
+  LoadBalancerDnsName:
+    Value: !GetAtt Service.Name
+    Export:
+      Name: !Sub "${AWS::StackName}-not-found-service-name"
+
 
