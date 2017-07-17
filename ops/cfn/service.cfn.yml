@@ -97,7 +97,7 @@ Resources:
       Conditions:
         - Field: path-pattern
           Values:
-            - /php
+            - /
       Actions:
         - TargetGroupArn: !Ref TargetGroup
           Type: forward
@@ -115,6 +115,7 @@ Resources:
         HttpCode: 200-299
       HealthCheckIntervalSeconds: 10
       HealthCheckPath: /
+      HealthCheckPort: 8405
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
@@ -140,6 +141,7 @@ Resources:
               ContainerPath: /var/www/my-vol
           PortMappings:
             - ContainerPort: 80
+              HostPort: 8405
           Environment:
             - Name: Tag
               Value: !Ref Tag
@@ -168,5 +170,15 @@ Outputs:
     Value: !GetAtt Service.Name
     Export:
       Name: !Sub "${AWS::StackName}-not-found-service-name"
+
+  TargetGroupArn:
+    Value: !Ref TargetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-sample-app-target-group-arn"
+
+  TargetGroupFullName:
+    Value: !GetAtt TargetGroup.TargetGroupFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-sample-app-target-group-full-name"
 
 
