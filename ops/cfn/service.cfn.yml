@@ -86,8 +86,9 @@ Resources:
       LoadBalancers:
         - ContainerName: "simple-app"
           ContainerPort: 80
-          TargetGroupArn: !Ref TargetGroupArn
-
+          TargetGroupArn: !Ref TargetGroup
+    DepensOn:
+      - TargetGroup
 
   ListenerRule:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
@@ -161,15 +162,15 @@ Resources:
 
 Outputs:
 
-  ServiceArnArn:
+  ServiceArn:
     Value: !Ref Service
     Export:
-      Name: !Sub "${AWS::StackName}-not-found-service-arn"
+      Name: !Sub "${AWS::StackName}-simple-app-service-arn"
 
   LoadBalancerDnsName:
     Value: !GetAtt Service.Name
     Export:
-      Name: !Sub "${AWS::StackName}-not-found-service-name"
+      Name: !Sub "${AWS::StackName}-simple-app-service-name"
 
   TargetGroupArn:
     Value: !Ref TargetGroup
