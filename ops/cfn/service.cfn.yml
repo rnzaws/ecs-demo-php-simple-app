@@ -88,7 +88,7 @@ Resources:
           ContainerPort: 80
           TargetGroupArn: !Ref TargetGroup
     DependsOn:
-      - TargetGroup
+      - ListenerRule
 
   ListenerRule:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
