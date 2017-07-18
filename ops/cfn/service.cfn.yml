@@ -61,7 +61,7 @@ Parameters:
 
 Resources:
 
-  ECSServiceRole:
+  EcsServiceRole:
     Type: "AWS::IAM::Role"
     Properties:
       Path: /
@@ -80,7 +80,7 @@ Resources:
     Type: "AWS::ECS::Service"
     Properties:
       Cluster: !Ref EcsClusterName
-      Role: !Ref ECSServiceRole
+      Role: !Ref EcsServiceRole
       DesiredCount: !Ref DesiredCount
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
@@ -89,6 +89,8 @@ Resources:
           TargetGroupArn: !Ref TargetGroup
     DependsOn:
       - ListenerRule
+      - TaskDefinition
+      - EcsServiceRole
 
   ListenerRule:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
@@ -110,13 +112,12 @@ Resources:
     Properties:
       Name: !Sub "${TaskName}-target-group"
       VpcId: !Ref VpcId
-      Port: 8405
+      Port: 80
       Protocol: HTTP
       Matcher:
         HttpCode: 200-299
       HealthCheckIntervalSeconds: 10
       HealthCheckPath: /
-      HealthCheckPort: 8405
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
@@ -142,7 +143,6 @@ Resources:
               ContainerPath: /var/www/my-vol
           PortMappings:
             - ContainerPort: 80
-              HostPort: 8405
           Environment:
             - Name: Tag
               Value: !Ref Tag
